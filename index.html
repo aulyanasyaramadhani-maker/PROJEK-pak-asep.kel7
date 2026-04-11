@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jurnal Pribadi</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: #f4f7fb;
+            color: #202124;
+        }
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #4a76ff;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        main {
+            flex: 1;
+            padding: 1rem;
+            max-width: 960px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .card {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.08);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .hidden { display: none; }
+        .button { padding: .9rem 1.25rem; border: none; border-radius: 10px; cursor: pointer; }
+        .primary { background: #4a76ff; color: white; }
+        .danger { background: #eb5757; color: white; }
+        .field { display: flex; flex-direction: column; margin-bottom: 1rem; }
+        .field label { margin-bottom: .5rem; font-weight: 600; }
+        .field input, .field textarea, .field select {
+            padding: .85rem;
+            border: 1px solid #d7dde7;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        .nav-buttons { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .journal-card { display: grid; gap: .75rem; padding: 1rem; border: 1px solid #e5e9f0; border-radius: 14px; }
+        .journal-card h3 { margin: 0; }
+        .journal-card small { color: #646d79; }
+        .journal-actions { display: flex; gap: .5rem; }
+        .settings-group { display: grid; gap: .75rem; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <header>
+            <h1>Jurnal Pribadi</h1>
+            <p>Masuk ke akun kamu. Biar jurnal aman & private.</p>
+        </header>
+
+        <main>
+            <section id="loginSection" class="card">
+                <h2>Login</h2>
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" placeholder="Masukkan email" />
+                </div>
+                <div class="field">
+                    <label for="password">Kata sandi</label>
+                    <input id="password" type="password" placeholder="Masukkan kata sandi" />
+                </div>
+                <button class="button primary" onclick="showDashboard()">Masuk</button>
+            </section>
+
+            <section id="dashboardSection" class="card hidden">
+                <h2>Dashboard</h2>
+                <div class="nav-buttons">
+                    <button class="button primary" onclick="showSection('journalSection')">Tambah Jurnal</button>
+                    <button class="button" onclick="showSection('listSection')">Lihat semua jurnal</button>
+                    <button class="button" onclick="showSection('settingsSection')">Setting</button>
+                </div>
+                <p>Tempat utama setelah login. Kelola jurnal dan pengaturan akun kamu.</p>
+            </section>
+
+            <section id="listSection" class="card hidden">
+                <h2>Semua Jurnal</h2>
+                <div id="journalList"></div>
+            </section>
+
+            <section id="journalSection" class="card hidden">
+                <h2>Halaman Jurnal</h2>
+                <div class="field">
+                    <label for="journalTitle">Judul</label>
+                    <input id="journalTitle" type="text" placeholder="Judul jurnal" />
+                </div>
+                <div class="field">
+                    <label for="journalDate">Tanggal</label>
+                    <input id="journalDate" type="date" />
+                </div>
+                <div class="field">
+                    <label for="journalContent">Isi tulisan</label>
+                    <textarea id="journalContent" rows="6" placeholder="Tulis cerita baru"></textarea>
+                </div>
+                <div class="field">
+                    <label for="journalMood">Mood</label>
+                    <select id="journalMood">
+                        <option value="">Pilih mood</option>
+                        <option value="senang">Senang</option>
+                        <option value="sedih">Sedih</option>
+                        <option value="tenang">Tenang</option>
+                        <option value="bahagia">Bahagia</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="journalPhoto">Foto (opsional)</label>
+                    <input id="journalPhoto" type="file" accept="image/*" />
+                </div>
+                <button class="button primary" onclick="saveJournal()">Simpan / publish</button>
+            </section>
+
+            <section id="settingsSection" class="card hidden">
+                <h2>Setting</h2>
+                <div class="settings-group">
+                    <div class="field">
+                        <label for="profileName">Ganti nama profil</label>
+                        <input id="profileName" type="text" placeholder="Nama profil baru" />
+                    </div>
+                    <div class="field">
+                        <label for="privacyMode">Mode private / public</label>
+                        <select id="privacyMode">
+                            <option value="private">Private</option>
+                            <option value="public">Public</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="themeColor">Tema warna</label>
+                        <input id="themeColor" type="color" value="#4a76ff" onchange="updateTheme(this.value)" />
+                    </div>
+                </div>
+                <button class="button primary" onclick="saveSettings()">Simpan pengaturan</button>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            showSection('listSection');
+        }
+
+        function showSection(id) {
+            ['dashboardSection','listSection','journalSection','settingsSection'].forEach(sectionId => {
+                document.getElementById(sectionId).classList.toggle('hidden', sectionId !== id && sectionId !== 'dashboardSection');
+            });
+            if (id === 'listSection') {
+                renderJournalList();
+            }
+        }
+
+        const journals = [];
+
+        function saveJournal() {
+            const title = document.getElementById('journalTitle').value.trim();
+            const date = document.getElementById('journalDate').value;
+            const content = document.getElementById('journalContent').value.trim();
+            const mood = document.getElementById('journalMood').value;
+            if (!title || !date || !content || !mood) {
+                alert('Lengkapi semua field sebelum menyimpan.');
+                return;
+            }
+            journals.unshift({ title, date, content, mood, id: Date.now() });
+            document.getElementById('journalTitle').value = '';
+            document.getElementById('journalDate').value = '';
+            document.getElementById('journalContent').value = '';
+            document.getElementById('journalMood').value = '';
+            alert('Jurnal berhasil disimpan.');
+            showSection('listSection');
+        }
+
+        function renderJournalList() {
+            const list = document.getElementById('journalList');
+            list.innerHTML = '';
+            if (!journals.length) {
+                list.innerHTML = '<p>Tidak ada jurnal. Tambah jurnal baru.</p>';
+                return;
+            }
+            journals.forEach(j => {
+                const card = document.createElement('div');
+                card.className = 'journal-card';
+                card.innerHTML = `
+                    <h3>${j.title}</h3>
+                    <small>${j.date} • Mood: ${j.mood}</small>
+                    <p>${j.content}</p>
+                    <div class="journal-actions">
+                        <button class="button" onclick="editJournal(${j.id})">Edit</button>
+                        <button class="button danger" onclick="deleteJournal(${j.id})">Hapus</button>
+                    </div>`;
+                list.appendChild(card);
+            });
+        }
+
+        function editJournal(id) {
+            const journal = journals.find(item => item.id === id);
+            if (!journal) return;
+            document.getElementById('journalTitle').value = journal.title;
+            document.getElementById('journalDate').value = journal.date;
+            document.getElementById('journalContent').value = journal.content;
+            document.getElementById('journalMood').value = journal.mood;
+            showSection('journalSection');
+        }
+
+        function deleteJournal(id) {
+            const index = journals.findIndex(item => item.id === id);
+            if (index === -1) return;
+            journals.splice(index, 1);
+            renderJournalList();
+        }
+
+        function saveSettings() {
+            alert('Pengaturan disimpan.');
+        }
+
+        function updateTheme(color) {
+            document.documentElement.style.setProperty('--primary', color);
+            document.querySelector('header').style.background = color;
+            document.querySelectorAll('.primary').forEach(btn => btn.style.background = color);
+        }
+    </script>
+</body>
+</html>
