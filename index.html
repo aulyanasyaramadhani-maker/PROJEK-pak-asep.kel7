@@ -1,236 +1,890 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jurnal Pribadi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Diary - Jurnal Pribadi Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
         body {
-            margin: 0;
-            font-family: system-ui, sans-serif;
-            background: #f4f7fb;
-            color: #202124;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .app-shell {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
         }
-        header {
-            background: #4a76ff;
-            color: white;
-            padding: 1rem;
-            text-align: center;
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        main {
-            flex: 1;
-            padding: 1rem;
-            max-width: 960px;
-            margin: 0 auto;
-            width: 100%;
+
+        .slide-up {
+            animation: slideUp 0.4s ease-out;
         }
-        .card {
-            background: white;
-            border-radius: 14px;
-            box-shadow: 0 10px 30px rgba(0,0,0,.08);
-            padding: 1.25rem;
-            margin-bottom: 1rem;
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .hidden { display: none; }
-        .button { padding: .9rem 1.25rem; border: none; border-radius: 10px; cursor: pointer; }
-        .primary { background: #4a76ff; color: white; }
-        .danger { background: #eb5757; color: white; }
-        .field { display: flex; flex-direction: column; margin-bottom: 1rem; }
-        .field label { margin-bottom: .5rem; font-weight: 600; }
-        .field input, .field textarea, .field select {
-            padding: .85rem;
-            border: 1px solid #d7dde7;
-            border-radius: 10px;
-            font-size: 1rem;
+
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .nav-buttons { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
-        .journal-card { display: grid; gap: .75rem; padding: 1rem; border: 1px solid #e5e9f0; border-radius: 14px; }
-        .journal-card h3 { margin: 0; }
-        .journal-card small { color: #646d79; }
-        .journal-actions { display: flex; gap: .5rem; }
-        .settings-group { display: grid; gap: .75rem; }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode {
+            color-scheme: dark;
+        }
+
+        .dark-mode .light-bg {
+            @apply bg-gray-900;
+        }
+
+        .dark-mode .light-text {
+            @apply text-gray-100;
+        }
+
+        .toast {
+            animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .mood-emoji {
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .mood-emoji:hover {
+            transform: scale(1.2);
+        }
+
+        .mood-emoji.selected {
+            transform: scale(1.4);
+            filter: brightness(1.2);
+        }
+
+        .journal-card {
+            background: linear-gradient(135deg, rgba(255, 240, 245, 1) 0%, rgba(240, 248, 255, 1) 100%);
+        }
+
+        .dark-mode .journal-card {
+            background: linear-gradient(135deg, rgba(30, 30, 40, 1) 0%, rgba(25, 35, 45, 1) 100%);
+        }
+
+        .btn-base {
+            transition: all 0.2s ease;
+        }
+
+        .btn-base:active {
+            transform: scale(0.98);
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+        }
+
+        .input-focus:focus {
+            @apply ring-2 ring-pink-300;
+        }
+
+        .dark-mode .input-focus:focus {
+            @apply ring-blue-400;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            @apply bg-gray-100;
+        }
+
+        .dark-mode .custom-scrollbar::-webkit-scrollbar-track {
+            @apply bg-gray-800;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            @apply bg-pink-300 rounded-full;
+        }
+
+        .dark-mode .custom-scrollbar::-webkit-scrollbar-thumb {
+            @apply bg-blue-500 rounded-full;
+        }
     </style>
 </head>
-<body>
-    <div class="app-shell">
-        <header>
-            <h1>Jurnal Pribadi</h1>
-            <p>Masuk ke akun kamu. Biar jurnal aman & private.</p>
-        </header>
+<body class="light-bg light-text bg-gradient-to-br from-gray-50 to-gray-100">
+    <!-- Container -->
+    <div id="app" class="min-h-screen">
+        <!-- Auth Pages -->
+        <div id="authContainer"></div>
 
-        <main>
-            <section id="loginSection" class="card">
-                <h2>Login</h2>
-                <div class="field">
-                    <label for="email">Email</label>
-                    <input id="email" type="email" placeholder="Masukkan email" />
-                </div>
-                <div class="field">
-                    <label for="password">Kata sandi</label>
-                    <input id="password" type="password" placeholder="Masukkan kata sandi" />
-                </div>
-                <button class="button primary" onclick="showDashboard()">Masuk</button>
-            </section>
-
-            <section id="dashboardSection" class="card hidden">
-                <h2>Dashboard</h2>
-                <div class="nav-buttons">
-                    <button class="button primary" onclick="showSection('journalSection')">Tambah Jurnal</button>
-                    <button class="button" onclick="showSection('listSection')">Lihat semua jurnal</button>
-                    <button class="button" onclick="showSection('settingsSection')">Setting</button>
-                </div>
-                <p>Tempat utama setelah login. Kelola jurnal dan pengaturan akun kamu.</p>
-            </section>
-
-            <section id="listSection" class="card hidden">
-                <h2>Semua Jurnal</h2>
-                <div id="journalList"></div>
-            </section>
-
-            <section id="journalSection" class="card hidden">
-                <h2>Halaman Jurnal</h2>
-                <div class="field">
-                    <label for="journalTitle">Judul</label>
-                    <input id="journalTitle" type="text" placeholder="Judul jurnal" />
-                </div>
-                <div class="field">
-                    <label for="journalDate">Tanggal</label>
-                    <input id="journalDate" type="date" />
-                </div>
-                <div class="field">
-                    <label for="journalContent">Isi tulisan</label>
-                    <textarea id="journalContent" rows="6" placeholder="Tulis cerita baru"></textarea>
-                </div>
-                <div class="field">
-                    <label for="journalMood">Mood</label>
-                    <select id="journalMood">
-                        <option value="">Pilih mood</option>
-                        <option value="senang">Senang</option>
-                        <option value="sedih">Sedih</option>
-                        <option value="tenang">Tenang</option>
-                        <option value="bahagia">Bahagia</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="journalPhoto">Foto (opsional)</label>
-                    <input id="journalPhoto" type="file" accept="image/*" />
-                </div>
-                <button class="button primary" onclick="saveJournal()">Simpan / publish</button>
-            </section>
-
-            <section id="settingsSection" class="card hidden">
-                <h2>Setting</h2>
-                <div class="settings-group">
-                    <div class="field">
-                        <label for="profileName">Ganti nama profil</label>
-                        <input id="profileName" type="text" placeholder="Nama profil baru" />
-                    </div>
-                    <div class="field">
-                        <label for="privacyMode">Mode private / public</label>
-                        <select id="privacyMode">
-                            <option value="private">Private</option>
-                            <option value="public">Public</option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="themeColor">Tema warna</label>
-                        <input id="themeColor" type="color" value="#4a76ff" onchange="updateTheme(this.value)" />
-                    </div>
-                </div>
-                <button class="button primary" onclick="saveSettings()">Simpan pengaturan</button>
-            </section>
-        </main>
+        <!-- Main App -->
+        <div id="mainApp" class="hidden"></div>
     </div>
 
     <script>
-        function showDashboard() {
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('dashboardSection').classList.remove('hidden');
-            showSection('listSection');
-        }
+        // ==================== STORAGE MANAGEMENT ====================
+        class StorageManager {
+            static initStorage() {
+                if (!localStorage.getItem('users')) {
+                    localStorage.setItem('users', JSON.stringify({}));
+                }
+                if (!localStorage.getItem('currentUser')) {
+                    localStorage.setItem('currentUser', JSON.stringify(null));
+                }
+            }
 
-        function showSection(id) {
-            ['dashboardSection','listSection','journalSection','settingsSection'].forEach(sectionId => {
-                document.getElementById(sectionId).classList.toggle('hidden', sectionId !== id && sectionId !== 'dashboardSection');
-            });
-            if (id === 'listSection') {
-                renderJournalList();
+            static registerUser(username, password) {
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                if (users[username]) {
+                    return { success: false, message: 'Username sudah terdaftar!' };
+                }
+                users[username] = {
+                    password: btoa(password),
+                    theme: 'light',
+                    isPrivate: false
+                };
+                localStorage.setItem('users', JSON.stringify(users));
+                localStorage.setItem(`journals_${username}`, JSON.stringify([]));
+                return { success: true, message: 'Pendaftaran berhasil!' };
+            }
+
+            static loginUser(username, password) {
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                if (!users[username] || users[username].password !== btoa(password)) {
+                    return { success: false, message: 'Username atau password salah!' };
+                }
+                localStorage.setItem('currentUser', JSON.stringify(username));
+                return { success: true, message: 'Login berhasil!' };
+            }
+
+            static logoutUser() {
+                localStorage.setItem('currentUser', JSON.stringify(null));
+            }
+
+            static getCurrentUser() {
+                return JSON.parse(localStorage.getItem('currentUser') || 'null');
+            }
+
+            static getJournals(username) {
+                const key = `journals_${username}`;
+                return JSON.parse(localStorage.getItem(key) || '[]');
+            }
+
+            static saveJournal(username, journal) {
+                const journals = this.getJournals(username);
+                const existingIndex = journals.findIndex(j => j.id === journal.id);
+                if (existingIndex >= 0) {
+                    journals[existingIndex] = journal;
+                } else {
+                    journals.push(journal);
+                }
+                localStorage.setItem(`journals_${username}`, JSON.stringify(journals));
+            }
+
+            static deleteJournal(username, journalId) {
+                let journals = this.getJournals(username);
+                journals = journals.filter(j => j.id !== journalId);
+                localStorage.setItem(`journals_${username}`, JSON.stringify(journals));
+            }
+
+            static getJournalById(username, journalId) {
+                const journals = this.getJournals(username);
+                return journals.find(j => j.id === journalId);
+            }
+
+            static updateUserSettings(username, settings) {
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                users[username] = { ...users[username], ...settings };
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+
+            static getUserSettings(username) {
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                return users[username] || {};
             }
         }
 
-        const journals = [];
-
-        function saveJournal() {
-            const title = document.getElementById('journalTitle').value.trim();
-            const date = document.getElementById('journalDate').value;
-            const content = document.getElementById('journalContent').value.trim();
-            const mood = document.getElementById('journalMood').value;
-            if (!title || !date || !content || !mood) {
-                alert('Lengkapi semua field sebelum menyimpan.');
-                return;
+        // ==================== UI MANAGER ====================
+        class UIManager {
+            static showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                const bgColor = type === 'error' ? 'bg-red-400' : type === 'success' ? 'bg-green-400' : 'bg-blue-400';
+                toast.className = `toast fixed bottom-4 right-4 ${bgColor} text-white px-6 py-3 rounded-full shadow-lg z-50`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.animation = 'slideOutRight 0.3s ease-out forwards';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
             }
-            journals.unshift({ title, date, content, mood, id: Date.now() });
-            document.getElementById('journalTitle').value = '';
-            document.getElementById('journalDate').value = '';
-            document.getElementById('journalContent').value = '';
-            document.getElementById('journalMood').value = '';
-            alert('Jurnal berhasil disimpan.');
-            showSection('listSection');
-        }
 
-        function renderJournalList() {
-            const list = document.getElementById('journalList');
-            list.innerHTML = '';
-            if (!journals.length) {
-                list.innerHTML = '<p>Tidak ada jurnal. Tambah jurnal baru.</p>';
-                return;
+            static setTheme(theme) {
+                const html = document.documentElement;
+                if (theme === 'dark') {
+                    html.classList.add('dark-mode');
+                } else {
+                    html.classList.remove('dark-mode');
+                }
             }
-            journals.forEach(j => {
-                const card = document.createElement('div');
-                card.className = 'journal-card';
-                card.innerHTML = `
-                    <h3>${j.title}</h3>
-                    <small>${j.date} • Mood: ${j.mood}</small>
-                    <p>${j.content}</p>
-                    <div class="journal-actions">
-                        <button class="button" onclick="editJournal(${j.id})">Edit</button>
-                        <button class="button danger" onclick="deleteJournal(${j.id})">Hapus</button>
-                    </div>`;
-                list.appendChild(card);
-            });
+
+            static getCurrentTheme() {
+                return document.documentElement.classList.contains('dark-mode') ? 'dark' : 'light';
+            }
         }
 
-        function editJournal(id) {
-            const journal = journals.find(item => item.id === id);
-            if (!journal) return;
-            document.getElementById('journalTitle').value = journal.title;
-            document.getElementById('journalDate').value = journal.date;
-            document.getElementById('journalContent').value = journal.content;
-            document.getElementById('journalMood').value = journal.mood;
-            showSection('journalSection');
+        // ==================== APP CONTROLLER ====================
+        class AppController {
+            constructor() {
+                StorageManager.initStorage();
+                this.currentPage = null;
+                this.initialize();
+            }
+
+            initialize() {
+                const currentUser = StorageManager.getCurrentUser();
+                if (currentUser) {
+                    this.loadTheme(currentUser);
+                    this.showDashboard();
+                } else {
+                    this.showAuth();
+                }
+            }
+
+            loadTheme(username) {
+                const settings = StorageManager.getUserSettings(username);
+                const theme = settings.theme || 'light';
+                UIManager.setTheme(theme);
+            }
+
+            // ==================== AUTH PAGES ====================
+            showAuth() {
+                this.currentPage = 'auth';
+                const authContainer = document.getElementById('authContainer');
+                const mainApp = document.getElementById('mainApp');
+                mainApp.classList.add('hidden');
+                authContainer.classList.remove('hidden');
+                authContainer.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-br from-pink-100 to-blue-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+                        <div class="w-full max-w-md">
+                            <div id="loginForm" class="fade-in">
+                                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 space-y-6">
+                                    <div class="text-center">
+                                        <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent mb-2">My Diary</h1>
+                                        <p class="text-gray-600 dark:text-gray-400">Jurnal Pribadi Modern</p>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <input 
+                                            type="text" 
+                                            id="loginUsername" 
+                                            placeholder="Username" 
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700"
+                                        >
+                                        <input 
+                                            type="password" 
+                                            id="loginPassword" 
+                                            placeholder="Password" 
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700"
+                                        >
+                                    </div>
+
+                                    <button 
+                                        onclick="app.handleLogin()" 
+                                        class="btn-base w-full bg-gradient-to-r from-pink-400 to-blue-400 hover:from-pink-500 hover:to-blue-500 text-white font-bold py-3 rounded-2xl"
+                                    >
+                                        Login
+                                    </button>
+
+                                    <div class="text-center text-gray-600 dark:text-gray-400">
+                                        Belum punya akun? 
+                                        <button onclick="app.showRegister()" class="text-pink-500 hover:text-pink-600 font-bold">Daftar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="registerForm" class="hidden fade-in">
+                                <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 space-y-6">
+                                    <div class="text-center">
+                                        <h1 class="text-4xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent mb-2">My Diary</h1>
+                                        <p class="text-gray-600 dark:text-gray-400">Buat Akun Baru</p>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <input 
+                                            type="text" 
+                                            id="regUsername" 
+                                            placeholder="Username" 
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700"
+                                        >
+                                        <input 
+                                            type="password" 
+                                            id="regPassword" 
+                                            placeholder="Password" 
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700"
+                                        >
+                                        <input 
+                                            type="password" 
+                                            id="regConfirmPassword" 
+                                            placeholder="Konfirmasi Password" 
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700"
+                                        >
+                                    </div>
+
+                                    <button 
+                                        onclick="app.handleRegister()" 
+                                        class="btn-base w-full bg-gradient-to-r from-pink-400 to-blue-400 hover:from-pink-500 hover:to-blue-500 text-white font-bold py-3 rounded-2xl"
+                                    >
+                                        Daftar
+                                    </button>
+
+                                    <div class="text-center text-gray-600 dark:text-gray-400">
+                                        Sudah punya akun? 
+                                        <button onclick="app.showLogin()" class="text-pink-500 hover:text-pink-600 font-bold">Login</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            showLogin() {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+            }
+
+            showRegister() {
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('loginForm').classList.add('hidden');
+            }
+
+            handleLogin() {
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value.trim();
+
+                if (!username || !password) {
+                    UIManager.showToast('Username dan password harus diisi!', 'error');
+                    return;
+                }
+
+                const result = StorageManager.loginUser(username, password);
+                if (result.success) {
+                    UIManager.showToast(result.message, 'success');
+                    setTimeout(() => {
+                        this.loadTheme(username);
+                        this.showDashboard();
+                    }, 500);
+                } else {
+                    UIManager.showToast(result.message, 'error');
+                }
+            }
+
+            handleRegister() {
+                const username = document.getElementById('regUsername').value.trim();
+                const password = document.getElementById('regPassword').value.trim();
+                const confirmPassword = document.getElementById('regConfirmPassword').value.trim();
+
+                if (!username || !password || !confirmPassword) {
+                    UIManager.showToast('Semua field harus diisi!', 'error');
+                    return;
+                }
+
+                if (password !== confirmPassword) {
+                    UIManager.showToast('Password tidak cocok!', 'error');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    UIManager.showToast('Password minimal 6 karakter!', 'error');
+                    return;
+                }
+
+                const result = StorageManager.registerUser(username, password);
+                if (result.success) {
+                    UIManager.showToast(result.message, 'success');
+                    setTimeout(() => this.showLogin(), 500);
+                } else {
+                    UIManager.showToast(result.message, 'error');
+                }
+            }
+
+            // ==================== MAIN APP ====================
+            showDashboard() {
+                this.currentPage = 'dashboard';
+                const currentUser = StorageManager.getCurrentUser();
+                const journals = StorageManager.getJournals(currentUser);
+                const authContainer = document.getElementById('authContainer');
+                const mainApp = document.getElementById('mainApp');
+                authContainer.classList.add('hidden');
+                mainApp.classList.remove('hidden');
+
+                mainApp.innerHTML = `
+                    <div class="min-h-screen">
+                        <!-- Navigation -->
+                        <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-40">
+                            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">My Diary</h1>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <button onclick="app.showAddJournal()" class="btn-base bg-gradient-to-r from-pink-400 to-blue-400 hover:from-pink-500 hover:to-blue-500 text-white px-6 py-2 rounded-full font-bold">
+                                        ➕ Jurnal Baru
+                                    </button>
+                                    <button onclick="app.showSettings()" class="btn-base text-gray-600 dark:text-gray-400 hover:text-pink-500 px-4 py-2 rounded-full text-xl">
+                                        ⚙️
+                                    </button>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <!-- Main Content -->
+                        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            <div id="dashboardContent" class="fade-in">
+                                ${journals.length === 0 ? `
+                                    <div class="text-center py-16">
+                                        <div class="text-6xl mb-4">📔</div>
+                                        <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">Mulai Tulis Jurnal Anda</h2>
+                                        <p class="text-gray-600 dark:text-gray-400 mb-6">Belum ada jurnal. Mulai tulis ceritamu hari ini!</p>
+                                        <button onclick="app.showAddJournal()" class="btn-base bg-gradient-to-r from-pink-400 to-blue-400 hover:from-pink-500 hover:to-blue-500 text-white px-8 py-3 rounded-2xl font-bold">
+                                            Buat Jurnal Pertama
+                                        </button>
+                                    </div>
+                                ` : `
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        ${journals.map(journal => `
+                                            <div class="card-hover journal-card rounded-3xl p-6 border-2 border-pink-200 dark:border-gray-700 cursor-pointer" onclick="app.showJournalDetail('${journal.id}')">
+                                                <div class="flex justify-between items-start mb-3">
+                                                    <span class="text-3xl">${journal.mood || '😊'}</span>
+                                                    <span class="text-sm text-gray-500 dark:text-gray-400">${new Date(journal.date).toLocaleDateString('id-ID')}</span>
+                                                </div>
+                                                <h3 class="font-bold text-lg text-gray-800 dark:text-gray-100 mb-2 line-clamp-2">${journal.title}</h3>
+                                                <p class="text-gray-700 dark:text-gray-400 line-clamp-3 text-sm mb-4">${journal.content}</p>
+                                                <div class="flex gap-2">
+                                                    <button onclick="event.stopPropagation(); app.editJournal('${journal.id}')" class="btn-base flex-1 bg-blue-200 dark:bg-blue-900 hover:bg-blue-300 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-400 py-2 rounded-full text-sm font-bold">
+                                                        ✏️ Edit
+                                                    </button>
+                                                    <button onclick="event.stopPropagation(); app.confirmDelete('${journal.id}')" class="btn-base flex-1 bg-red-200 dark:bg-red-900 hover:bg-red-300 dark:hover:bg-red-800 text-red-700 dark:text-red-400 py-2 rounded-full text-sm font-bold">
+                                                        🗑️ Hapus
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            showAddJournal(journalId = null) {
+                this.currentPage = 'addJournal';
+                const currentUser = StorageManager.getCurrentUser();
+                let journal = journalId ? StorageManager.getJournalById(currentUser, journalId) : null;
+                
+                const moods = ['😊', '😢', '😡', '😍', '😴'];
+                const selectedMood = journal?.mood || '😊';
+
+                const mainApp = document.getElementById('mainApp');
+                mainApp.innerHTML = `
+                    <div class="min-h-screen">
+                        <!-- Navigation -->
+                        <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-40">
+                            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                                <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">My Diary</h1>
+                                <button onclick="app.showDashboard()" class="btn-base text-gray-600 dark:text-gray-400 hover:text-pink-500 px-4 py-2 rounded-full text-xl">
+                                    ❌
+                                </button>
+                            </div>
+                        </nav>
+
+                        <!-- Form -->
+                        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            <div class="slide-up bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8">
+                                <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
+                                    ${journal ? '✏️ Edit Jurnal' : '📝 Jurnal Baru'}
+                                </h2>
+
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Judul</label>
+                                        <input 
+                                            type="text" 
+                                            id="journalTitle" 
+                                            value="${journal?.title || ''}"
+                                            placeholder="Masukkan judul jurnal..." 
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700"
+                                        >
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Tanggal</label>
+                                        <input 
+                                            type="date" 
+                                            id="journalDate" 
+                                            value="${journal?.date || new Date().toISOString().split('T')[0]}"
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700"
+                                        >
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 font-bold mb-4">Mood</label>
+                                        <div class="flex gap-4 justify-center p-4 bg-gray-50 dark:bg-gray-700 rounded-2xl">
+                                            ${moods.map(mood => `
+                                                <button 
+                                                    type="button"
+                                                    onclick="app.setMood('${mood}')" 
+                                                    class="mood-emoji ${mood === selectedMood ? 'selected' : ''}"
+                                                    id="mood-${mood}"
+                                                >
+                                                    ${mood}
+                                                </button>
+                                            `).join('')}
+                                        </div>
+                                        <input type="hidden" id="journalMood" value="${selectedMood}">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Isi</label>
+                                        <textarea 
+                                            id="journalContent" 
+                                            placeholder="Tulis ceritamu di sini..." 
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700 h-40 resize-none custom-scrollbar"
+                                        >${journal?.content || ''}</textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-gray-700 dark:text-gray-300 font-bold mb-2">Foto (Opsional)</label>
+                                        <input 
+                                            type="file" 
+                                            id="journalPhoto" 
+                                            accept="image/*"
+                                            class="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-pink-400 input-focus bg-gray-50 dark:bg-gray-700"
+                                        >
+                                        ${journal?.photo ? `
+                                            <div class="mt-4">
+                                                <img src="${journal.photo}" class="max-w-full h-40 object-cover rounded-2xl">
+                                                <button type="button" onclick="app.removePhoto()" class="mt-2 text-red-500 hover:text-red-700 font-bold">🗑️ Hapus Foto</button>
+                                            </div>
+                                        ` : ''}
+                                        <input type="hidden" id="journalPhotoBase64" value="${journal?.photo || ''}">
+                                    </div>
+
+                                    <div class="flex gap-4 pt-4">
+                                        <button 
+                                            onclick="app.saveJournal(${journalId ? `'${journalId}'` : 'null'})" 
+                                            class="btn-base flex-1 bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 rounded-2xl"
+                                        >
+                                            💾 Simpan
+                                        </button>
+                                        <button 
+                                            onclick="app.showDashboard()" 
+                                            class="btn-base flex-1 bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-bold py-3 rounded-2xl"
+                                        >
+                                            ❌ Batal
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Handle photo upload
+                document.getElementById('journalPhoto').addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            document.getElementById('journalPhotoBase64').value = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            setMood(mood) {
+                document.querySelectorAll('.mood-emoji').forEach(el => el.classList.remove('selected'));
+                document.getElementById(`mood-${mood}`).classList.add('selected');
+                document.getElementById('journalMood').value = mood;
+            }
+
+            removePhoto() {
+                document.getElementById('journalPhotoBase64').value = '';
+                document.getElementById('journalPhoto').value = '';
+                this.showAddJournal();
+            }
+
+            saveJournal(journalId) {
+                const currentUser = StorageManager.getCurrentUser();
+                const title = document.getElementById('journalTitle').value.trim();
+                const date = document.getElementById('journalDate').value;
+                const content = document.getElementById('journalContent').value.trim();
+                const mood = document.getElementById('journalMood').value;
+                const photo = document.getElementById('journalPhotoBase64').value;
+
+                if (!title || !content) {
+                    UIManager.showToast('Judul dan isi jurnal harus diisi!', 'error');
+                    return;
+                }
+
+                const journal = {
+                    id: journalId || Date.now().toString(),
+                    title,
+                    date,
+                    content,
+                    mood,
+                    photo,
+                    createdAt: journalId ? StorageManager.getJournalById(currentUser, journalId).createdAt : new Date().toISOString()
+                };
+
+                StorageManager.saveJournal(currentUser, journal);
+                UIManager.showToast(journalId ? 'Jurnal berhasil diupdate!' : 'Jurnal berhasil disimpan!', 'success');
+                setTimeout(() => this.showDashboard(), 500);
+            }
+
+            editJournal(journalId) {
+                this.showAddJournal(journalId);
+            }
+
+            confirmDelete(journalId) {
+                if (confirm('Apakah Anda yakin ingin menghapus jurnal ini?')) {
+                    this.deleteJournal(journalId);
+                }
+            }
+
+            deleteJournal(journalId) {
+                const currentUser = StorageManager.getCurrentUser();
+                StorageManager.deleteJournal(currentUser, journalId);
+                UIManager.showToast('Jurnal berhasil dihapus!', 'success');
+                this.showDashboard();
+            }
+
+            showJournalDetail(journalId) {
+                this.currentPage = 'detail';
+                const currentUser = StorageManager.getCurrentUser();
+                const journal = StorageManager.getJournalById(currentUser, journalId);
+                
+                if (!journal) {
+                    this.showDashboard();
+                    return;
+                }
+
+                const mainApp = document.getElementById('mainApp');
+                mainApp.innerHTML = `
+                    <div class="min-h-screen">
+                        <!-- Navigation -->
+                        <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-40">
+                            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                                <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">My Diary</h1>
+                                <button onclick="app.showDashboard()" class="btn-base text-gray-600 dark:text-gray-400 hover:text-pink-500 px-4 py-2 rounded-full text-xl">
+                                    ← Kembali
+                                </button>
+                            </div>
+                        </nav>
+
+                        <!-- Content -->
+                        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            <div class="slide-up bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden">
+                                <div class="p-8">
+                                    <div class="flex justify-between items-start mb-6">
+                                        <div>
+                                            <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-2">${journal.title}</h1>
+                                            <p class="text-gray-600 dark:text-gray-400">${new Date(journal.date).toLocaleDateString('id-ID', {
+                                                weekday: 'long',
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })}</p>
+                                        </div>
+                                        <span class="text-5xl">${journal.mood}</span>
+                                    </div>
+
+                                    ${journal.photo ? `
+                                        <img src="${journal.photo}" class="w-full h-96 object-cover rounded-2xl mb-8">
+                                    ` : ''}
+
+                                    <div class="prose dark:prose-invert max-w-none mb-8">
+                                        <p class="text-gray-700 dark:text-gray-300 text-lg leading-relaxed whitespace-pre-wrap">${journal.content}</p>
+                                    </div>
+
+                                    <div class="flex gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        <button 
+                                            onclick="app.editJournal('${journal.id}')" 
+                                            class="btn-base flex-1 bg-blue-400 hover:bg-blue-500 text-white font-bold py-3 rounded-2xl"
+                                        >
+                                            ✏️ Edit
+                                        </button>
+                                        <button 
+                                            onclick="app.confirmDelete('${journal.id}')" 
+                                            class="btn-base flex-1 bg-red-400 hover:bg-red-500 text-white font-bold py-3 rounded-2xl"
+                                        >
+                                            🗑️ Hapus
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            showSettings() {
+                this.currentPage = 'settings';
+                const currentUser = StorageManager.getCurrentUser();
+                const settings = StorageManager.getUserSettings(currentUser);
+                const theme = settings.theme || 'light';
+                const isPrivate = settings.isPrivate || false;
+
+                const mainApp = document.getElementById('mainApp');
+                mainApp.innerHTML = `
+                    <div class="min-h-screen">
+                        <!-- Navigation -->
+                        <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-40">
+                            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                                <h1 class="text-3xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">My Diary</h1>
+                                <button onclick="app.showDashboard()" class="btn-base text-gray-600 dark:text-gray-400 hover:text-pink-500 px-4 py-2 rounded-full text-xl">
+                                    ← Kembali
+                                </button>
+                            </div>
+                        </nav>
+
+                        <!-- Settings -->
+                        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            <div class="slide-up bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 space-y-8">
+                                <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">⚙️ Pengaturan</h2>
+
+                                <!-- Profile Section -->
+                                <div class="border-b border-gray-200 dark:border-gray-700 pb-8">
+                                    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">👤 Profil</h3>
+                                    <div class="bg-purple-100 dark:bg-purple-900 rounded-2xl p-6">
+                                        <p class="text-purple-900 dark:text-purple-300 font-bold text-xl">
+                                            Username: <span class="bg-white dark:bg-gray-700 px-4 py-2 rounded-lg">${currentUser}</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Theme Setting -->
+                                <div class="border-b border-gray-200 dark:border-gray-700 pb-8">
+                                    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">🎨 Tema</h3>
+                                    <div class="flex gap-4">
+                                        <button 
+                                            onclick="app.changeTheme('light')" 
+                                            class="btn-base flex-1 ${theme === 'light' ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'} text-gray-800 dark:text-gray-100 font-bold py-4 rounded-2xl text-lg"
+                                        >
+                                            ☀️ Light Mode
+                                        </button>
+                                        <button 
+                                            onclick="app.changeTheme('dark')" 
+                                            class="btn-base flex-1 ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-900 text-white' : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100'} font-bold py-4 rounded-2xl text-lg"
+                                        >
+                                            🌙 Dark Mode
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Privacy Setting -->
+                                <div class="border-b border-gray-200 dark:border-gray-700 pb-8">
+                                    <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">🔒 Privasi</h3>
+                                    <div class="bg-gray-100 dark:bg-gray-700 rounded-2xl p-6 space-y-4">
+                                        <p class="text-gray-700 dark:text-gray-300 font-bold">Status Jurnal:</p>
+                                        <div class="flex gap-4">
+                                            <button 
+                                                onclick="app.changePrivacy(false)" 
+                                                class="btn-base flex-1 ${!isPrivate ? 'bg-green-400 hover:bg-green-500' : 'bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500'} text-gray-800 dark:text-gray-100 font-bold py-4 rounded-2xl"
+                                            >
+                                                🔓 Publik
+                                            </button>
+                                            <button 
+                                                onclick="app.changePrivacy(true)" 
+                                                class="btn-base flex-1 ${isPrivate ? 'bg-orange-400 hover:bg-orange-500' : 'bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500'} text-gray-800 dark:text-gray-100 font-bold py-4 rounded-2xl"
+                                            >
+                                                🔒 Pribadi
+                                            </button>
+                                        </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">
+                                            ${isPrivate ? '🔒 Jurnal Anda hanya bisa dilihat oleh Anda sendiri' : '🔓 Jurnal Anda bersifat publik'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Logout Button -->
+                                <div class="pt-4">
+                                    <button 
+                                        onclick="app.handleLogout()" 
+                                        class="btn-base w-full bg-red-400 hover:bg-red-500 text-white font-bold py-4 rounded-2xl text-lg"
+                                    >
+                                        🚪 Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            changeTheme(theme) {
+                const currentUser = StorageManager.getCurrentUser();
+                StorageManager.updateUserSettings(currentUser, { theme });
+                UIManager.setTheme(theme);
+                UIManager.showToast(`Tema berubah ke ${theme === 'dark' ? 'Dark' : 'Light'} Mode`, 'success');
+                this.showSettings();
+            }
+
+            changePrivacy(isPrivate) {
+                const currentUser = StorageManager.getCurrentUser();
+                StorageManager.updateUserSettings(currentUser, { isPrivate });
+                UIManager.showToast(isPrivate ? 'Jurnal diatur ke Pribadi' : 'Jurnal diatur ke Publik', 'success');
+                this.showSettings();
+            }
+
+            handleLogout() {
+                if (confirm('Apakah Anda yakin ingin logout?')) {
+                    StorageManager.logoutUser();
+                    UIManager.showToast('Logout berhasil!', 'success');
+                    setTimeout(() => {
+                        UIManager.setTheme('light');
+                        this.showAuth();
+                    }, 500);
+                }
+            }
         }
 
-        function deleteJournal(id) {
-            const index = journals.findIndex(item => item.id === id);
-            if (index === -1) return;
-            journals.splice(index, 1);
-            renderJournalList();
-        }
-
-        function saveSettings() {
-            alert('Pengaturan disimpan.');
-        }
-
-        function updateTheme(color) {
-            document.documentElement.style.setProperty('--primary', color);
-            document.querySelector('header').style.background = color;
-            document.querySelectorAll('.primary').forEach(btn => btn.style.background = color);
-        }
+        // Initialize App
+        const app = new AppController();
     </script>
 </body>
 </html>
